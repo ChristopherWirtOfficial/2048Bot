@@ -18,6 +18,7 @@ namespace _2048 {
         public bool Loss = false;
         public int[] scores = new int[2049]; // Keep track of the number of each thing we've encountered (Not the number currently on the board)
         public Random Rand;
+        public bool dirty = false;
         public Game(int size) {
             Rand = new Random();
             Board = new int?[size, size];
@@ -105,12 +106,43 @@ namespace _2048 {
         public void MakeMove(int ToRotate) {
             // Rotate back by doing 4 - ToRotate % 4... Or implement a counter-clockwise rotator. But that's work!
             ToRotate = ToRotate % 4;
-            for (int i = 0; i < ToRotate; i++) {
+            /*for (int i = 0; i < ToRotate; i++) {
                 //Console.WriteLine("Rotating[" + i + "]");
                 RotateBoard();
                 //DisplayBoard();
+            }*/
+            dirty = false; // The board starts out clean, no changes.
+            switch (ToRotate) {
+                case 0:
+                    MoveLeft();
+                    break;
+                case 1:
+                    MoveDown();
+                    break;
+                case 2:
+                    MoveRight();
+                    break;
+                case 3:
+                    MoveUp();
+                    break;
             }
-            bool dirty = false; // The board starts out clean, no changes.
+            
+            for (int i = 0; i < size; i++) {
+                for (int j = 0; j < size; j++) {
+                    CanCombine[i, j] = true; // Everything can combine again
+                }
+            }
+            if (dirty) {
+                NumberOfMoves++;
+                AddPiece(); // Only add a piece if they just made a real move. If nothing happened, then don't do anyting.
+            }
+            if (HasLost()) {
+                Running = false;
+                Loss = true;
+            }
+        }
+
+        public void MoveLeft() {
             for (int y = 0; y < size; y++) {
                 for (int x = 1; x < size; x++) { // Start at x=1, because we'll never move x=0
                     int? p = Board[y, x]; // The piece at x,y
@@ -157,24 +189,155 @@ namespace _2048 {
                     }
                 }
             }
-            for (int i = 0; i < size; i++) {
-                for (int j = 0; j < size; j++) {
-                    CanCombine[i, j] = true; // Everything can combine again
+        }
+
+        public void MoveDown() {
+            for (int x = 0; x < size; x++) {
+                for (int y = 0; y < size-1; y++) { // Start at x=1, because we'll never move x=0
+                    int? p = Board[y, x]; // The piece at x,y
+                    if (p != null) {
+                        // There's a piece here!
+                        int tempY = y + 1;
+                        while (true) {
+                            int? temp = null;
+                            if (tempY < size - 1) {
+                                temp = Board[tempY, x]; // Piece we're checking against right now
+                                if (temp == null) {
+                                    tempY++;
+                                    continue;
+                                }
+                            }
+                            temp = Board[tempY,x]; // Piece we're checking against right now
+                            // At this point, we're either at either y=size-1 or a non-empty space
+                            if (temp == null) { // The farthest down thing is null, replace it
+                                dirty = true;
+                                Board[tempY, x] = p;
+                                Board[y, x] = null;
+                            } else if (!CanCombine[tempY, x] || temp != p) { // Either way, we need to just put it to the right of tempX
+                                if (tempY - 1 != y) {
+                                    dirty = true;
+                                    Board[tempY - 1, x] = p;
+                                    Board[y, x] = null;
+                                    // Only do things if it's actually a different spot..
+                                }
+
+                            } else if (temp == p) {
+                                dirty = true;
+                                int val = (int)(2 * p);
+                                if (val > CurrentMax) {
+                                    CurrentMax = val;
+                                }
+                                Board[tempY, x] = val;
+                                scores[val]++; // We just saw one more of 2*p
+                                TotalScore += val;
+                                Board[y, x] = null;
+                                CanCombine[tempY, x] = false; // We just combined, so now we can't anymore.
+                            }
+                            break;
+                        }
+                    }
                 }
             }
-            int back = (4 - ToRotate) % 4;
-            for (int i = 0; i < back; i++) {
-                RotateBoard();
-            }
-            if (dirty) {
-                NumberOfMoves++;
-                AddPiece(); // Only add a piece if they just made a real move. If nothing happened, then don't do anyting.
-            }
-            if (HasLost()) {
-                Running = false;
-                Loss = true;
+        }
+
+        public void MoveRight() {
+            for (int y = 0; y < size; y++) {
+                for (int x = 0; x < size - 1; x++) {
+                    int? p = Board[y, x]; // The piece at x,y
+                    if (p != null) {
+                        // There's a piece here!
+                        int tempX = x + 1;
+                        while (true) {
+                            int? temp = null;
+                            if (tempX < size-1) {
+                                temp = Board[y, tempX]; // Piece we're checking against right now
+                                if (temp == null) {
+                                    tempX++;
+                                    continue;
+                                }
+                            }
+                            temp = Board[y, tempX]; // Piece we're checking against right now
+                            // At this point, we're either at either x=0 or a non-empty space
+                            if (temp == null) { // The farthest left thing is null, replace it
+                                dirty = true;
+                                Board[y, tempX] = p;
+                                Board[y, x] = null;
+                            } else if (!CanCombine[y, tempX] || temp != p) { 
+                                if (tempX - 1 != x) {
+                                    dirty = true;
+                                    Board[y, tempX - 1] = p;
+                                    Board[y, x] = null;
+                                    // Only do things if it's actually a different spot..
+                                }
+
+                            } else if (temp == p) {
+                                dirty = true;
+                                int val = (int)(2 * p);
+                                if (val > CurrentMax) {
+                                    CurrentMax = val;
+                                }
+                                Board[y, tempX] = val;
+                                scores[val]++; // We just saw one more of 2*p
+                                TotalScore += val;
+                                Board[y, x] = null;
+                                CanCombine[y, tempX] = false; // We just combined, so now we can't anymore.
+                            }
+                            break;
+                        }
+                    }
+                }
             }
         }
+
+        public void MoveUp() {
+            for (int x = 0; x < size; x++) {
+                for (int y = 1; y < size; y++) { // Start at x=1, because we'll never move x=0
+                    int? p = Board[y, x]; // The piece at x,y
+                    if (p != null) {
+                        // There's a piece here!
+                        int tempY = y - 1;
+                        while (true) {
+                            int? temp = null;
+                            if (tempY > 0) {
+                                temp = Board[tempY, x]; // Piece we're checking against right now
+                                if (temp == null) {
+                                    tempY--;
+                                    continue;
+                                }
+                            }
+                            temp = Board[tempY, x]; // Piece we're checking against right now
+                            // At this point, we're either at either y=size-1 or a non-empty space
+                            if (temp == null) { // The farthest down thing is null, replace it
+                                dirty = true;
+                                Board[tempY, x] = p;
+                                Board[y, x] = null;
+                            } else if (!CanCombine[tempY, x] || temp != p) { // Either way, we need to just put it to the right of tempX
+                                if (tempY + 1 != y) {
+                                    dirty = true;
+                                    Board[tempY + 1, x] = p;
+                                    Board[y, x] = null;
+                                    // Only do things if it's actually a different spot..
+                                }
+
+                            } else if (temp == p) {
+                                dirty = true;
+                                int val = (int)(2 * p);
+                                if (val > CurrentMax) {
+                                    CurrentMax = val;
+                                }
+                                Board[tempY, x] = val;
+                                scores[val]++; // We just saw one more of 2*p
+                                TotalScore += val;
+                                Board[y, x] = null;
+                                CanCombine[tempY, x] = false; // We just combined, so now we can't anymore.
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
 
         /// <summary>
         /// Adds a piece to a random location on the board.
@@ -183,15 +346,16 @@ namespace _2048 {
             int p = Rand.Next(0, 10) == 0 ? 4 : 2;
 
             TotalScore += p;
-            List<XYPair> openSpots = new List<XYPair>();
+            XYPair[] openSpots = new XYPair[size * size]; // Largest possible
+            int n=0;
             for (int i = 0; i < size; i++) {
                 for (int j = 0; j < size; j++) {
                     if (Board[i, j] == null) {
-                        openSpots.Add(new XYPair(i, j));
+                        openSpots[n].x = j;
+                        openSpots[n++].y = i;
                     }
                 }
             }
-            int n = openSpots.Count;
             while (n > 1) {
                 n--;
                 int k = Rand.Next(n + 1);
@@ -200,18 +364,12 @@ namespace _2048 {
                 openSpots[n] = value;
             }
             // We've now shuffled the list and can take the first one!
-            XYPair pair = openSpots.FirstOrDefault();
-            if (pair == null) {
-                // There are no other spots... they lose!
-                Loss = true;
-                Running = false;
-                return;
-            }
-            Board[pair.x, pair.y] = p;
+            XYPair pair = openSpots[0];
+            Board[pair.y, pair.x] = p;
         }
     }
 
-    public class XYPair {
+    public struct XYPair {
         public int x, y;
 
         public XYPair(int p1, int p2) {
