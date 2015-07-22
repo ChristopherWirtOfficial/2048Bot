@@ -11,7 +11,7 @@ namespace _2048 {
         static void Main(string[] args) {
             Random Rand = new Random();
             string TestType = "RotateCW";
-            
+
             if (args.Length > 0) {
                 TestType = args[0];
             }
@@ -35,7 +35,7 @@ namespace _2048 {
                 case "RotateBothRandom":
                     TestTypeNum = 5;
                     break;
-                    
+
 
             }
             string scoresFile = TestType + "scores.json";
@@ -47,7 +47,7 @@ namespace _2048 {
                 storage = new Storage();
             }
             DateTime start = DateTime.Now;
-            for (int n = 0; n < 1000000; n++) {
+            while (true) {
                 Game game = new Game(4);
                 int?[,] startingBoard = new int?[game.size, game.size];
                 for (int i = 0; i < game.size; i++) {
@@ -57,10 +57,10 @@ namespace _2048 {
                 }
 
                 //game.DisplayBoard();
-               
+
                 int move = 0;
                 int temp = 0; // Means different things dependent on algorithm
-                while (game.Running) { 
+                while (game.Running) {
                     switch (TestTypeNum) {
                         case 0: // Random Simple
                             move = Rand.Next(0, 4);
@@ -94,7 +94,7 @@ namespace _2048 {
                             else
                                 move = (move + 1) % 4;
                             break;
-                }
+                    }
                     game.MakeMove(move);
                 }
                 //game.DisplayBoard();
