@@ -11,10 +11,34 @@ namespace _2048 {
         static void Main(string[] args) {
             Random Rand = new Random();
             string TestType = "RotateCW";
+            
             if (args.Length > 0) {
                 TestType = args[0];
             }
-            string scoresFile = @"C:\Users\cwirt\Documents\Workspace\2048\2048\" + TestType + "scores.json";
+            int TestTypeNum = 0;
+            switch (TestType) {
+                case "RandomSimple":
+                    TestTypeNum = 0;
+                    break;
+                case "RandomNoDouble":
+                    TestTypeNum = 1;
+                    break;
+                case "RotateCW":
+                    TestTypeNum = 2;
+                    break;
+                case "RotateCCW":
+                    TestTypeNum = 3;
+                    break;
+                case "RotateBoth":
+                    TestTypeNum = 4;
+                    break;
+                case "RotateBothRandom":
+                    TestTypeNum = 5;
+                    break;
+                    
+
+            }
+            string scoresFile = TestType + "scores.json";
             Storage storage = null;
             try {
                 string scores = System.IO.File.ReadAllText(scoresFile);
@@ -23,7 +47,7 @@ namespace _2048 {
                 storage = new Storage();
             }
             DateTime start = DateTime.Now;
-            for (int n = 0; n < 100000; n++) {
+            for (int n = 0; n < 1000000; n++) {
                 Game game = new Game(4);
                 int?[,] startingBoard = new int?[game.size, game.size];
                 for (int i = 0; i < game.size; i++) {
@@ -33,9 +57,44 @@ namespace _2048 {
                 }
 
                 //game.DisplayBoard();
+               
                 int move = 0;
-                while (game.Running) {
-                    move = (move + 1) % 4;
+                int temp = 0; // Means different things dependent on algorithm
+                while (game.Running) { 
+                    switch (TestTypeNum) {
+                        case 0: // Random Simple
+                            move = Rand.Next(0, 4);
+                            break;
+                        case 1: // Random no doubles
+                            move = Rand.Next(0, 4);
+                            while (move == temp) {
+                                move = Rand.Next(0, 4); // Never do the same move twice in a row
+                            }
+                            temp = move;
+                            break;
+                        case 2: // Rotate Clockwise
+                            move = (move + 1) % 4;
+                            break;
+                        case 3: // Rotate Counter-Clockwise
+                            move = (move - 1) % 4;
+                            break;
+                        case 4: // Rotate both ways, switching at a constant interval
+                            if (temp >= 20)
+                                temp = 0;
+                            if (temp >= 10)
+                                move = (move - 1) % 4;
+                            else
+                                move = (move + 1) % 4;
+                            temp++;
+                            break;
+                        case 5: // Rotate both ways, switching at a random interval
+                            temp = Rand.Next(0, 20);
+                            if (temp >= 10)
+                                move = (move - 1) % 4;
+                            else
+                                move = (move + 1) % 4;
+                            break;
+                }
                     game.MakeMove(move);
                 }
                 //game.DisplayBoard();
