@@ -91,11 +91,12 @@ namespace _2048 {
                             break;
                         case 5: // Rotate both ways, switching at a random interval
                             temp = Rand.Next(0, 20);
-                            if (temp >= 10)
+                            if (temp >= 10) {
                                 if (move == 0) move = 4;
                                 move = (move - 1) % 4;
-                            else
+                            } else {
                                 move = (move + 1) % 4;
+                            }
                             break;
                     }
                     game.MakeMove(move);

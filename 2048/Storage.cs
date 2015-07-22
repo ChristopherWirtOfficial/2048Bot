@@ -14,8 +14,7 @@ namespace _2048 {
         public double AvgScore;
         public double AvgMoves;
         public double AvgRatio; // Ratio of Score/Moves
-        public List<int> BestTileIndex; // An index to map the best tile value to count of hits, below
-        public List<int> BestTileHits; // The actual count of hits for each best tile
+        public List<BestTileHit> BestTileHits; // The actual count of hits for each best tile
         public double AvgTime;
         private DateTime start = DateTime.Now;
         public Storage() {
@@ -27,19 +26,21 @@ namespace _2048 {
             AvgTime = 0;
             BestScore = null;
             WorstScore = null;
-            BestTileHits = new List<int>();
-            BestTileIndex = new List<int>();
+            BestTileHits = new List<BestTileHit>();
         }
 
         public bool AddScore(Score s) {
-            if (!BestTileIndex.Contains(s.BestTile)) {
-                BestTileIndex.Add(s.BestTile);
-                BestTileHits.Add(1);
-            } else {
-                int index = BestTileIndex.IndexOf(s.BestTile);
-                int newVal = BestTileHits.ElementAt(index) + 1;
-                BestTileHits.RemoveAt(index);
-                BestTileHits.Insert(index, newVal);
+            bool found = false;
+            foreach (BestTileHit h in BestTileHits) {
+                if (h.Tile == s.BestTile) {
+                    h.Number++;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                BestTileHits.Add(new BestTileHit { Tile = s.BestTile, Number = 1 });
+                BestTileHits.Sort();
             }
             count++;
             AvgTile = ((AvgTile * (count - 1)) + s.BestTile) / count;
@@ -62,30 +63,38 @@ namespace _2048 {
 
         public void Print() {
             Console.WriteLine("========Scores========");
-            Console.WriteLine("For {0} scores", count);
+            Console.WriteLine("For {0:n0} scores", count);
             Console.WriteLine("Best Score:");
             Console.WriteLine("\tTile: {0}", BestScore.BestTile);
-            Console.WriteLine("\tScore: {0}", BestScore.TotalScore);
-            Console.WriteLine("\tMoves: {0}", BestScore.Moves);
+            Console.WriteLine("\tScore: {0:n0}", BestScore.TotalScore);
+            Console.WriteLine("\tMoves: {0:n0}", BestScore.Moves);
             Console.WriteLine("Worst Score:");
             Console.WriteLine("\tTile: {0}", WorstScore.BestTile);
-            Console.WriteLine("\tScore: {0}", WorstScore.TotalScore);
-            Console.WriteLine("\tMoves: {0}", WorstScore.Moves);
-            Console.WriteLine("Average BestTile: {0}", Math.Round(AvgTile, 3));
-            Console.WriteLine("Average Score: {0}", Math.Round(AvgScore, 3));
-            Console.WriteLine("Average Moves: {0}", Math.Round(AvgMoves, 3)); ;
-            Console.WriteLine("Average Score/Move ratio: {0}", Math.Round(AvgRatio, 3));
-            Console.WriteLine("Average Time per game: {0}ms", Math.Round(AvgTime, 5));
+            Console.WriteLine("\tScore: {0:n0}", WorstScore.TotalScore);
+            Console.WriteLine("\tMoves: {0:n0}", WorstScore.Moves);
+            Console.WriteLine("Average BestTile: {0:n}", Math.Round(AvgTile, 3));
+            Console.WriteLine("Average Score: {0:n}", Math.Round(AvgScore, 3));
+            Console.WriteLine("Average Moves: {0:n}", Math.Round(AvgMoves, 3)); ;
+            Console.WriteLine("Average Score/Move ratio: {0:n}", Math.Round(AvgRatio, 3));
+            Console.WriteLine("Average Time per game: {0:n}ms", Math.Round(AvgTime, 5));
             Console.WriteLine();
             Console.WriteLine("====Best Tile Hits====");
-            for (int i = 0; i < BestTileIndex.Count; i++) {
-                int num = BestTileIndex.ElementAt(i);
-                int val = BestTileHits.ElementAt(i);
+            foreach(BestTileHit h in BestTileHits) {
+                int val = h.Number;
                 double percentage = Math.Round(100 * ((double)val / (double)count), 3);
-                Console.WriteLine("\t{0}:\t{1} ({2}%)", num, val, percentage);
+                Console.WriteLine("\t{0}:\t{1:n0} ({2}%)", h.Tile, val, percentage);
             }
             Console.WriteLine();
             Console.WriteLine();
+        }
+    }
+
+    public class BestTileHit : IComparable<BestTileHit> {
+        public int Tile;
+        public int Number;
+
+        public int CompareTo(BestTileHit other) {
+            return this.Tile - other.Tile;
         }
     }
 }
