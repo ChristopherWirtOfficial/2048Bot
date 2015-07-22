@@ -2,10 +2,10 @@
 Command-line 2048 game for bruteforce gameplay testing
 
 # How-To
-The application is purely command line, and may be run from a shortcut or any other command line interface. The command to run it is
+The application is purely command line, and may be run from a shortcut, the provided Run.bat or any other command line interface. The command to run it is
 
     2048.exe [algorithm]
-
+    
 An algorithm may be specified, with the default being RotateCW (because it was the original reason for this project)
 
 Supported algorithms are below. If you want to know exactly what they do, check the source code!
@@ -16,6 +16,9 @@ Supported algorithms are below. If you want to know exactly what they do, check 
  - RotateCCW
  - RotateBoth
  - RotateBothRandom
+
+When using Run.bat, the entire algorithm name should be entered, or left blank for default.
+
 
 Each of this will create its own scores.json file in the current directory. These scores are cumulitive for a given test, and save every 10,000 games (Every one or two seconds, roughly). If you start again with the same algorithm, you will start from the most recent save. The application will run until exited, because of this. Please do not try to run multiple instances with the same algorithm specified, because **it does NOT read from the file between saves**, only at the start.
 
