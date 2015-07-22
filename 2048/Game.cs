@@ -193,7 +193,7 @@ namespace _2048 {
 
         public void MoveDown() {
             for (int x = 0; x < size; x++) {
-                for (int y = 0; y < size-1; y++) { // Start at x=1, because we'll never move x=0
+                for (int y = size-2; y >=0; y--) { // Start at x=1, because we'll never move x=0
                     int? p = Board[y, x]; // The piece at x,y
                     if (p != null) {
                         // There's a piece here!
@@ -242,7 +242,7 @@ namespace _2048 {
 
         public void MoveRight() {
             for (int y = 0; y < size; y++) {
-                for (int x = 0; x < size - 1; x++) {
+                for (int x = size-2; x >=0; x--) {
                     int? p = Board[y, x]; // The piece at x,y
                     if (p != null) {
                         // There's a piece here!
