@@ -2,10 +2,10 @@
 Command-line 2048 game for bruteforce gameplay testing
 
 # How-To
-The application is purely command line, and may be run from a shortcut or any other command line interface. The command to run it is
+The application is purely command line, and may be run from a shortcut, the provided Run.bat or any other command line interface. The command to run it is
 
     2048.exe [algorithm]
-
+    
 An algorithm may be specified, with the default being RotateCW (because it was the original reason for this project)
 
 Supported algorithms are below. If you want to know exactly what they do, check the source code!
@@ -17,7 +17,11 @@ Supported algorithms are below. If you want to know exactly what they do, check 
  - RotateBoth
  - RotateBothRandom
 
-Each of this will create its own scores.json file in the current directory. These scores are cumulitive for a given test, and save every 10,000 games (Every one or two seconds, roughly). If you start again with the same algorithm, you will start from the most recent save. The application will run until exited, because of this. Please do not try to run multiple instances with the same algorithm specified, because **it does NOT read from the file between saves**, only at the start.
+When using Run.bat, the entire algorithm name should be entered, or left blank for default.
+
+Since each instance is single-threaded, each instance will use at most a single logical core. This means you can still effectively run multiple algorithms at once, but it is unoptimized for using a full CPU on a single algorithm. This will likely change in the future. [Fork me on github!]
+
+Each of these will create its own scores.json file in the current directory. These scores are cumulitive for a given test, and save every 10,000 games (Every one or two seconds, roughly). If you start again with the same algorithm, you will start from the most recent save. The application will run until exited, because of this. Please do not try to run multiple instances with the same algorithm specified, because **it does NOT read from the file between saves**, only at the start.
 
 You can find a binary in the Debug folder. 
  1. Yes, I commited binaries
