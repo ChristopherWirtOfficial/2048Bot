@@ -47,6 +47,7 @@ namespace _2048 {
                 storage = new Storage();
             }
             DateTime start = DateTime.Now;
+            Console.Title = "2048: " + TestType;
             while (true) {
                 Game game = new Game(4);
                 int?[,] startingBoard = new int?[game.size, game.size];
@@ -76,6 +77,7 @@ namespace _2048 {
                             move = (move + 1) % 4;
                             break;
                         case 3: // Rotate Counter-Clockwise
+                            if (move == 0) move = 4;
                             move = (move - 1) % 4;
                             break;
                         case 4: // Rotate both ways, switching at a constant interval
@@ -90,6 +92,7 @@ namespace _2048 {
                         case 5: // Rotate both ways, switching at a random interval
                             temp = Rand.Next(0, 20);
                             if (temp >= 10)
+                                if (move == 0) move = 4;
                                 move = (move - 1) % 4;
                             else
                                 move = (move + 1) % 4;
@@ -104,6 +107,7 @@ namespace _2048 {
                     Console.WriteLine("Something else happened..");
                 }
                 if (storage.AddScore(new Score { BestTile = game.CurrentMax, Moves = game.NumberOfMoves, TotalScore = game.TotalScore, Board = game.Board, StartingBoard = startingBoard })) {
+                    Console.Title = TestType +": "+game.CurrentMax+" ("+game.NumberOfMoves+" moves)";
                     Console.WriteLine();
                     Console.WriteLine();
                     Console.WriteLine();
