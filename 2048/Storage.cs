@@ -53,7 +53,7 @@ namespace _2048 {
             if (WorstScore == null || WorstScore.Moves >= s.Moves) {
                 WorstScore = s;
             }
-            if (BestScore == null || BestScore.BestTile < s.BestTile) {
+            if (BestScore == null || (BestScore.BestTile < s.BestTile || (BestScore.BestTile == s.BestTile && BestScore.Moves > s.Moves))) {
                 BestScore = s;
                 return true;
             }
