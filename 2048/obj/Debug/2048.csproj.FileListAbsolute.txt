@@ -14,3 +14,11 @@ C:\Users\cwirt\Documents\Workspace\2048Bot\2048\bin\Debug\2048.pdb
 C:\Users\cwirt\Documents\Workspace\2048Bot\2048\bin\Debug\Newtonsoft.Json.dll
 C:\Users\cwirt\Documents\Workspace\2048Bot\2048\bin\Debug\Newtonsoft.Json.xml
 C:\Users\cwirt\Documents\Workspace\2048Bot\2048\obj\Debug\2048.csprojResolveAssemblyReference.cache
+C:\Users\Nate\Documents\GitHubVisualStudio\2048Bot\2048\bin\Debug\2048.exe.config
+C:\Users\Nate\Documents\GitHubVisualStudio\2048Bot\2048\obj\Debug\2048.exe
+C:\Users\Nate\Documents\GitHubVisualStudio\2048Bot\2048\obj\Debug\2048.pdb
+C:\Users\Nate\Documents\GitHubVisualStudio\2048Bot\2048\bin\Debug\2048.exe
+C:\Users\Nate\Documents\GitHubVisualStudio\2048Bot\2048\bin\Debug\2048.pdb
+C:\Users\Nate\Documents\GitHubVisualStudio\2048Bot\2048\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Nate\Documents\GitHubVisualStudio\2048Bot\2048\bin\Debug\Newtonsoft.Json.xml
+C:\Users\Nate\Documents\GitHubVisualStudio\2048Bot\2048\obj\Debug\2048.csprojResolveAssemblyReference.cache
