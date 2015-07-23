@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
+using Newtonsoft.Json;
 
 namespace _2048 {
     public class Storage {
@@ -17,49 +21,122 @@ namespace _2048 {
         public List<BestTileHit> BestTileHits; // The actual count of hits for each best tile
         public double AvgTime;
         private DateTime start = DateTime.Now;
-        public Storage() {
-            count = 0;
-            AvgTile = 0;
-            AvgScore = 0;
-            AvgMoves = 0;
-            AvgRatio = 0;
-            AvgTime = 0;
-            BestScore = null;
-            WorstScore = null;
-            BestTileHits = new List<BestTileHit>();
+	    public string TestType;
+	    public int ProgressCheck = 10000;
+		[JsonIgnore]
+	    public string ScoresFile;
+		[JsonIgnore]
+	    private Thread QueueTimer;
+
+	    public Storage()
+	    {
+			count = 0;
+			AvgTile = 0;
+			AvgScore = 0;
+			AvgMoves = 0;
+			AvgRatio = 0;
+			AvgTime = 0;
+			BestScore = null;
+			WorstScore = null;
+			BestTileHits = new List<BestTileHit>();
+			QueueTimer = new Thread(QueueChecker);
+			//QueueTimer.Priority = ThreadPriority.AboveNormal;
+			QueueTimer.Start();
+	    }
+
+        public Storage(string scoresFile, string testType) : this() {
+	        ScoresFile = scoresFile;
+	        TestType = testType;
+        }
+		private ConcurrentQueue<Score> scoreList = new ConcurrentQueue<Score>();
+
+        public void AddScore(Score s) {
+			scoreList.Enqueue(s);
         }
 
-        public bool AddScore(Score s) {
-            bool found = false;
-            foreach (BestTileHit h in BestTileHits) {
-                if (h.Tile == s.BestTile) {
-                    h.Number++;
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                BestTileHits.Add(new BestTileHit { Tile = s.BestTile, Number = 1 });
-                BestTileHits.Sort();
-            }
-            count++;
-            AvgTile = ((AvgTile * (count - 1)) + s.BestTile) / count;
-            AvgScore = ((AvgScore * (count - 1)) + s.TotalScore) / count;
-            AvgMoves = ((AvgMoves * (count - 1)) + s.Moves) / count;
-            AvgRatio = ((AvgRatio * (count - 1)) + (s.TotalScore / s.Moves)) / count;
-            if (count % 10000 == 0) {
-                AvgTime = ((AvgTime * (count - 1)) + (DateTime.Now.Subtract(start).TotalMilliseconds / 10000D)) / count;
-                start = DateTime.Now;
-            }
-            if (WorstScore == null || WorstScore.Moves >= s.Moves) {
-                WorstScore = s;
-            }
-            if (BestScore == null || (BestScore.BestTile < s.BestTile || (BestScore.BestTile == s.BestTile && BestScore.Moves > s.Moves))) {
-                BestScore = s;
-                return true;
-            }
-            return false;
-        }
+	    private void QueueChecker()
+	    {
+		    while (true)
+		    {
+				while (!scoreList.IsEmpty)
+				{ 
+					Score s;
+					if (scoreList.TryDequeue(out s))
+					{
+						bool found = false;
+						foreach (BestTileHit h in BestTileHits)
+						{
+							if (h.Tile == s.BestTile)
+							{
+								h.Number++;
+								found = true;
+								break;
+							}
+						}
+						if (!found)
+						{
+							BestTileHits.Add(new BestTileHit { Tile = s.BestTile, Number = 1 });
+							BestTileHits.Sort();
+						}
+						count++;
+						AvgTile = ((AvgTile * (count - 1)) + s.BestTile) / count;
+						AvgScore = ((AvgScore * (count - 1)) + s.TotalScore) / count;
+						AvgMoves = ((AvgMoves * (count - 1)) + s.Moves) / count;
+						AvgRatio = ((AvgRatio * (count - 1)) + ((double)s.TotalScore / s.Moves)) / count;
+						if (count % 10000 == 0)
+						{
+							AvgTime = ((AvgTime * (count - 1)) + (DateTime.Now.Subtract(start).TotalMilliseconds / 10000D)) / count;
+							start = DateTime.Now;
+						}
+						if (WorstScore == null || WorstScore.Moves >= s.Moves)
+						{
+							WorstScore = s;
+						}
+						if (BestScore == null || (BestScore.BestTile < s.BestTile || (BestScore.BestTile == s.BestTile && BestScore.Moves > s.Moves)))
+						{
+							BestScore = s;
+							OnNewBestScore();
+						}
+
+						if (count % ProgressCheck == 0)
+						{
+							try
+							{
+								System.IO.File.WriteAllText(ScoresFile, JsonConvert.SerializeObject(this));
+							}
+							catch (Exception e)
+							{
+								Console.Error.WriteLine(e.ToString());
+							}
+							Print();
+						}
+					}
+				}
+				Thread.Sleep(25);
+			}
+	    }
+
+	    private void OnNewBestScore()
+	    {
+			Console.Title = TestType + ": " + BestScore.BestTile + " (" + BestScore.Moves + " moves)";
+			Console.WriteLine();
+			Console.WriteLine();
+			Console.WriteLine();
+			Console.Error.WriteLine("New High Score!");
+			Console.WriteLine();
+			Console.WriteLine();
+			Console.WriteLine("Number of valid moves made: {0}", BestScore.Moves);
+			Console.WriteLine("Final Score: {0}!", BestScore.TotalScore);
+			Console.WriteLine("Largest tile: {0}!", BestScore.BestTile);
+			try
+			{
+				System.IO.File.WriteAllText(ScoresFile, JsonConvert.SerializeObject(this));
+			}
+			catch (Exception e)
+			{
+				Console.Error.WriteLine(e.ToString());
+			}
+		}
 
         public void Print() {
             Console.WriteLine("========Scores========");
